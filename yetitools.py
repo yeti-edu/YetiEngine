@@ -2,7 +2,9 @@ import network
 import socket
 import ure
 import time
+import re
 from random import randint
+
 
 ap_ssid = "Yeti_ESP32_"+str(randint(0,1000))
 ap_password = "12341234"
@@ -241,6 +243,7 @@ def stop():
     global server_socket
 
     if server_socket:
+        print("Closing former server socket...")
         server_socket.close()
         server_socket = None
 
@@ -308,10 +311,11 @@ def start_editor(port=80):
     addr = socket.getaddrinfo('0.0.0.0', port)[0][-1]
 
     stop()
-
-    server_socket = socket.socket()
-    server_socket.bind(addr)
-    server_socket.listen(1)
+    if not server_socket:
+        server_socket = socket.socket()
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server_socket.bind(addr)
+        server_socket.listen(1)
 
     print('Openning web code editor')
 
@@ -343,12 +347,15 @@ def start_editor(port=80):
                 handle_code_root(client)
             elif url == "update":
                 handle_code_update(client, request)
+                print("hadled code update!")
                 break
             else:
                 handle_not_found(client, url)
 
         finally:
             client.close()
+            print("Closing web editor client...")
+
 
 def upload_new_main(path, code):
     with open(path, "w") as f:
@@ -361,13 +368,14 @@ def handle_code_root(client):
         output = f.read()
     send_header(client)
     client.sendall("""
-        <html>
+    <html>
             <head>
                 <style type="text/css">
                 .input,
                     .textarea {
                     border: 1px solid #ccc;
                     font-family: courier;
+                    white-space: pre-wrap;
                     color:#F0A020;
                     background-color:#1F274A;
                     font-size: inherit;
@@ -393,24 +401,22 @@ def handle_code_root(client):
                         Yeti Code Editor
                     </span>
                 </h1>
-                <form action="update" method="post">
-                  	<p style="text-align: center;">
-                        <input type="submit" value="Upload Code" />
-                    </p>
+                <form action="update" method="POST">
                     <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">""" + code +
                     """</p>
-                    <p style="color:white;">
-                    Enter your code:
-                    </p>
                     <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;">""" + output +
                     """</p>
-                    <span class="textarea" role="textbox" contenteditable>
-                    </span>
+                    <label for="code"style="color:white;">
+                    Enter your code:
+                    </label>
+                    <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;"></p>
+                    <textarea class="textarea" placeholder="Your Code Here" name="code" id="code" rows="15" style="overflow-y: visible;"></textarea>
+                    <br/>
+                    <input type="submit" value="Upload Code">
                 </form>
             <body>
-            <p>&nbsp;</p>
         </html>
-    """.format(code=code, output=output))
+""")
     
     
 
@@ -424,7 +430,61 @@ def handle_code_update(client, response):
 
     # logger = logging.getLogger('output')
     code = str(response).split("code=")[-1]
+    # print("#### Got:\n" + code)
+    code = unquote_to_bytes(code.replace("+", " "))
+    print("Parsed:\n" + code.decode())
     with open(MAIN_PATH, "w") as f:
         if code:
             f.write(code)
-    
+
+
+def from_hex(hex_string: str):
+    if len(hex_string) % 2 != 0:
+        raise Exception("Failed parsing bytes of string " + hex_string)
+    byte_string = b""
+    for nibble_i in range(0, len(hex_string), 2):
+        byte_value = int(hex_string[nibble_i:nibble_i+1], 16)
+        byte_string = byte_string + chr(byte_value).encode()
+    return byte_string
+
+_hexdig = '0123456789ABCDEFabcdef'
+_hextobyte = None
+
+
+def unquote_to_bytes(string):
+    """unquote_to_bytes('abc%20def') -> b'abc def'."""
+    # Note: strings are encoded as UTF-8. This is only an issue if it contains
+    # unescaped non-ASCII characters, which URIs should not.
+    if not string:
+        # Is it a string-like object?
+        string.split
+        return b''
+    if isinstance(string, str):
+        string.replace("+", " ")
+        string = string.encode('utf-8')
+    # print(string)
+    bits = string.split(b'%')
+    # print(bits)
+    if len(bits) == 1:
+        return string
+    res = [bits[0]]
+    append = res.append
+    # Delay the initialization of the table to not waste memory
+    # if the function is never called
+    global _hextobyte
+    if _hextobyte is None:
+        _hextobyte = {(a + b).encode(): chr(int((a + b), 16))
+                      for a in _hexdig for b in _hexdig}
+    for item in bits[1:]:
+        try:
+            append(_hextobyte[item[:2]])
+            append(item[2:])
+        except KeyError:
+            append(b'%')
+            append(item)
+    # print("res:", res)
+    for i in range(len(res)):
+        if not isinstance(res[i], bytes):
+            res[i] = res[i].encode()
+    return b''.join(res)[:-1]
+
