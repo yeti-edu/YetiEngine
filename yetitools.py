@@ -345,6 +345,9 @@ def start_editor(port=80):
 
             if url == "":
                 handle_code_root(client)
+            elif url== "run":
+                print("running current code!")
+                break
             elif url == "update":
                 handle_code_update(client, request)
                 print("hadled code update!")
@@ -358,14 +361,16 @@ def start_editor(port=80):
 
 
 def upload_new_main(path, code):
-    with open(path, "w") as f:
+    with open(path, "wb") as f:
         f.write(code)
 
 def handle_code_root(client):
-    with open(MAIN_PATH, "r") as f:
-        code = f.read()
-    with open(OUTPUT_PATH, "r") as f:
-        output = f.read()
+    with open(MAIN_PATH, "rb") as f:
+        code = f.read().decode()
+        print(code)
+    with open(OUTPUT_PATH, "rb") as f:
+        output = f.read().decode()
+        print(output)
     send_header(client)
     client.sendall("""
     <html>
@@ -402,17 +407,23 @@ def handle_code_root(client):
                     </span>
                 </h1>
                 <form action="update" method="POST">
-                    <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">""" + code +
+                    <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">""" + code.replace("\n", "<br>") +
                     """</p>
-                    <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;">""" + output +
+                    <label for="code"style="color:white;font-family:courier;">
+                    Last run output:
+                    </label>
+                    <p style="color:#FFFFFF; background-color:#000000; text-align: left; vertical-align: top; font-family:courier;">""" + output.replace("\n", "<br>") +
                     """</p>
-                    <label for="code"style="color:white;">
+                    <label for="code"style="color:white;font-family:courier;">
                     Enter your code:
                     </label>
                     <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;"></p>
                     <textarea class="textarea" placeholder="Your Code Here" name="code" id="code" rows="15" style="overflow-y: visible;"></textarea>
                     <br/>
                     <input type="submit" value="Upload Code">
+                </form>
+                <form action="run" method="POST">
+                    <input type="submit" value="Run Current Code">
                 </form>
             <body>
         </html>
@@ -433,7 +444,7 @@ def handle_code_update(client, response):
     # print("#### Got:\n" + code)
     code = unquote_to_bytes(code.replace("+", " "))
     print("Parsed:\n" + code.decode())
-    with open(MAIN_PATH, "w") as f:
+    with open(MAIN_PATH, "wb") as f:
         if code:
             f.write(code)
 
