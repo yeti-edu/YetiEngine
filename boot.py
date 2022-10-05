@@ -18,13 +18,15 @@ class DUP(io.IOBase):
         return 0
 
 wlan = yetitools.get_connection()
+yetitools.start_server()
+    
 while True:
-    yetitools.start_editor()
     s = bytearray()
     os.dupterm(DUP(s))
-    import main
-    with open(yetitools.OUTPUT_PATH, "wb") as file:
-        file.write(s)
+    # import main
+    if s:
+        with open(yetitools.OUTPUT_PATH, "wb") as file:
+            file.write(s)
     os.dupterm(None)
 
 

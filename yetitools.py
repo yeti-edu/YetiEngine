@@ -1,3 +1,4 @@
+from microdot import Response
 import network
 import socket
 import ure
@@ -305,148 +306,148 @@ def start_network_picker(port=80):
         finally:
             client.close()
 
-def start_editor(port=80):
-    global server_socket
+# def start_editor(port=80):
+#     global server_socket
 
-    addr = socket.getaddrinfo('0.0.0.0', port)[0][-1]
+#     addr = socket.getaddrinfo('0.0.0.0', port)[0][-1]
 
-    stop()
-    if not server_socket:
-        server_socket = socket.socket()
-        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.bind(addr)
-        server_socket.listen(1)
+#     stop()
+#     if not server_socket:
+#         server_socket = socket.socket()
+#         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+#         server_socket.bind(addr)
+#         server_socket.listen(1)
 
-    print('Openning web code editor')
+#     print('Openning web code editor')
 
-    while True:
-        client, addr = server_socket.accept()
-        print('client connected from', addr)
-        try:
-            client.settimeout(5.0)
+#     while True:
+#         client, addr = server_socket.accept()
+#         print('client connected from', addr)
+#         try:
+#             client.settimeout(5.0)
 
-            request = b""
-            try:
-                while "\r\n\r\n" not in request:
-                    request += client.recv(512)
-            except OSError:
-                pass
+#             request = b""
+#             try:
+#                 while "\r\n\r\n" not in request:
+#                     request += client.recv(512)
+#             except OSError:
+#                 pass
 
-            print("Request is: {}".format(request))
-            if "HTTP" not in request:  # skip invalid requests
-                continue
+#             print("Request is: {}".format(request))
+#             if "HTTP" not in request:  # skip invalid requests
+#                 continue
 
-            # version 1.9 compatibility
-            try:
-                url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP", request).group(1).decode("utf-8").rstrip("/")
-            except Exception:
-                url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP", request).group(1).rstrip("/")
-            print("URL is {}".format(url))
+#             # version 1.9 compatibility
+#             try:
+#                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP", request).group(1).decode("utf-8").rstrip("/")
+#             except Exception:
+#                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP", request).group(1).rstrip("/")
+#             print("URL is {}".format(url))
 
-            if url == "":
-                handle_code_root(client)
-            elif url== "run":
-                print("running current code!")
-                break
-            elif url == "update":
-                handle_code_update(client, request)
-                print("hadled code update!")
-                break
-            elif url == "upload_file":
-                handle_upload_file(client, request)
-            else:
-                handle_not_found(client, url)
+#             if url == "":
+#                 handle_code_root(client)
+#             elif url== "run":
+#                 print("running current code!")
+#                 break
+#             elif url == "update":
+#                 handle_code_update(client, request)
+#                 print("hadled code update!")
+#                 break
+#             elif url == "upload_file":
+#                 handle_upload_file(client, request)
+#             else:
+#                 handle_not_found(client, url)
 
-        finally:
-            client.close()
-            print("Closing web editor client...")
+#         finally:
+#             client.close()
+#             print("Closing web editor client...")
 
 
-def upload_new_main(path, code):
-    with open(path, "wb") as f:
-        f.write(code)
+# def upload_new_main(path, code):
+#     with open(path, "wb") as f:
+#         f.write(code)
 
-def handle_upload_file(client, request):
-    pass
+# def handle_upload_file(client, request):
+#     pass
 
-def handle_code_root(client):
-    try:
-        with open(MAIN_PATH, "rb") as f:
-            code = f.read().decode()
-            print(code)
-    except:
-        code = ""
-    try:
-        with open(OUTPUT_PATH, "rb") as f:
-            output = f.read().decode()
-            print(output)
-    except:
-        output = ""
-    send_header(client)
-    client.sendall("""
-    <html>
-            <head>
-                <style type="text/css">
-                .input,
-                    .textarea {
-                    border: 1px solid #ccc;
-                    font-family: courier;
-                    white-space: pre-wrap;
-                    color:#F0A020;
-                    background-color:#1F274A;
-                    font-size: inherit;
-                    padding: 1px 6px;
-                    }
-                    .textarea {
-                    display: block;
-                    width: 100%;
-                    overflow: hidden;
-                    resize: both;
-                    min-height: 40px;
-                    line-height: 20px;
-                    }
-                    .textarea[contenteditable]:empty::before {
-                    content: "Your code here";
-                    color: gray;
-                    }
-                </style>
-            </head>
-            <body style="background-color:#0F173A;">
-                <h1 style="color: #0F173A; font-family:courier; text-align: center;">
-                    <span style="color: #37BEAF;">
-                        Yeti Code Editor
-                    </span>
-                </h1>
-                <form action="update" method="POST">
-                    <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">""" + code.replace("\n", "<br>") +
-                    """</p>
-                    <label for="code"style="color:white;font-family:courier;">
-                    Last run output:
-                    </label>
-                    <p style="color:#FFFFFF; background-color:#000000; text-align: left; vertical-align: top; font-family:courier;">""" + output.replace("\n", "<br>") +
-                    """</p>
-                    <label for="code"style="color:white;font-family:courier;">
-                    Enter your code:
-                    </label>
-                    <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;"></p>
-                    <textarea class="textarea" placeholder="Your Code Here" name="code" id="code" rows="15" style="overflow-y: visible;"></textarea>
-                    <br/>
-                    <input type="submit" value="Upload Code">
-                </form>
-                <form action="run" method="POST">
-                    <input type="submit" value="Run Current Code">
-                </form>
-                <form action="upload_file" method="POST">
-                    <label for="file">Select a file:</label>
-                    <input type="file" id="file" name="file">
-                </form>
-            <body>
-        </html>
-""")
+# def handle_code_root(client):
+#     try:
+#         with open(MAIN_PATH, "rb") as f:
+#             code = f.read().decode()
+#             print(code)
+#     except:
+#         code = ""
+#     try:
+#         with open(OUTPUT_PATH, "rb") as f:
+#             output = f.read().decode()
+#             print(output)
+#     except:
+#         output = ""
+#     send_header(client)
+#     client.sendall("""
+#     <html>
+#             <head>
+#                 <style type="text/css">
+#                 .input,
+#                     .textarea {
+#                     border: 1px solid #ccc;
+#                     font-family: courier;
+#                     white-space: pre-wrap;
+#                     color:#F0A020;
+#                     background-color:#1F274A;
+#                     font-size: inherit;
+#                     padding: 1px 6px;
+#                     }
+#                     .textarea {
+#                     display: block;
+#                     width: 100%;
+#                     overflow: hidden;
+#                     resize: both;
+#                     min-height: 40px;
+#                     line-height: 20px;
+#                     }
+#                     .textarea[contenteditable]:empty::before {
+#                     content: "Your code here";
+#                     color: gray;
+#                     }
+#                 </style>
+#             </head>
+#             <body style="background-color:#0F173A;">
+#                 <h1 style="color: #0F173A; font-family:courier; text-align: center;">
+#                     <span style="color: #37BEAF;">
+#                         Yeti Code Editor
+#                     </span>
+#                 </h1>
+#                 <form action="update" method="POST">
+#                     <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">""" + code.replace("\n", "<br>") +
+#                     """</p>
+#                     <label for="code"style="color:white;font-family:courier;">
+#                     Last run output:
+#                     </label>
+#                     <p style="color:#FFFFFF; background-color:#000000; text-align: left; vertical-align: top; font-family:courier;">""" + output.replace("\n", "<br>") +
+#                     """</p>
+#                     <label for="code"style="color:white;font-family:courier;">
+#                     Enter your code:
+#                     </label>
+#                     <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;"></p>
+#                     <textarea class="textarea" placeholder="Your Code Here" name="code" id="code" rows="15" style="overflow-y: visible;"></textarea>
+#                     <br/>
+#                     <input type="submit" value="Upload Code">
+#                 </form>
+#                 <form action="run" method="POST">
+#                     <input type="submit" value="Run Current Code">
+#                 </form>
+#                 <form action="upload_file" method="POST">
+#                     <label for="file">Select a file:</label>
+#                     <input type="file" id="file" name="file">
+#                 </form>
+#             <body>
+#         </html>
+# """)
     
     
 
-def handle_code_update(client, response):
+# def handle_code_update(client, response):
     # global logger
     # logging.basicConfig(filename=OUTPUT_PATH,
     #                 filemode='w',
@@ -513,4 +514,79 @@ def unquote_to_bytes(string):
         if not isinstance(res[i], bytes):
             res[i] = res[i].encode()
     return b''.join(res)[:-1]
+
+
+
+
+
+import uasyncio
+import sys
+from microdot import Microdot, Response
+
+
+# setup webserver
+app = Microdot()
+
+
+def start_server():
+    print('Starting microdot app')
+    app.run(port=80)
+    print('Server started')
+
+def run_code():
+    pass
+
+def update_code(request_json):
+    code = request_json["code"]
+    print(code)
+    print(type(code))
+    with open(MAIN_PATH, "w") as f:
+        if code:
+            print(f"writing code to {MAIN_PATH}")
+            f.write(code)
+
+
+def page(html_file_name: str):
+    """
+    return: html file content for body of response
+    """
+    print(html_file_name)
+    with open(f"website/{html_file_name}", "r") as f:
+        data = f.read()
+    return data
+
+def index_page(html_file_name: str):
+    with open(OUTPUT_PATH, "r") as f:
+        output = f.read().replace("\n", "<br>")
+    with open(MAIN_PATH, "r") as f:
+        code = f.read().replace("\n", "<br>")
+    return page(html_file_name).replace("{code}", code).replace("{output}", output)
+
+@app.route('/', methods=["GET"])
+def root(request):
+	return Response(body=index_page("index.html"), status_code=200, headers={'Content-Type': 'text/html'})
+
+@app.route('/run', methods=["GET"])
+def run_main_code(request):
+    run_code()
+    return root(request)
+
+@app.route('/upload_file', methods=["POST"])
+def upload_file(request):
+    fd = request.stream
+    print(fd)
+    print(fd.read())
+    return Response(status_code=200)
+
+@app.route('/upload', methods=["POST"])
+def upload(request):
+    update_code(request)
+    return Response(status_code=200)
+
+@app.route('/preview', methods=["POST"])
+def preview(request):
+	return Response(body=page("preview.html"), status_code=200, headers={'Content-Type': 'text/html'})
+
+
+
 
