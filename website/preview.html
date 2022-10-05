@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <script>
+        async function Approve() {
+            let url = './aprove';
+            let res = await fetch(url, {
+                method: 'GET',
+                headers: {},
+            });
+        }
+
+        async function Cancel() {
+            let url = './cancel';
+            let res = await fetch(url, {
+                method: 'GET',
+                headers: {},
+            });
+        }
+        </script>
+        <style type="text/css">
+        .input,
+            .textarea {
+            border: 1px solid #ccc;
+            font-family: courier;
+            white-space: pre-wrap;
+            color:#F0A020;
+            background-color:#1F274A;
+            font-size: inherit;
+            padding: 1px 6px;
+            }
+            .textarea {
+            display: block;
+            width: 100%;
+            overflow: hidden;
+            resize: both;
+            min-height: 40px;
+            line-height: 20px;
+            }
+            .textarea[contenteditable]:empty::before {
+            content: "Your code here";
+            color: gray;
+            }
+        </style>
+    </head>
+    <body style="background-color:#0F173A;">
+        <h1 style="color: #0F173A; font-family:courier; text-align: center;">
+            <span style="color: #37BEAF;">
+                Yeti Code Editor
+            </span>
+        </h1>
+        <label for="code"style="color:white;font-family:courier;">
+            Preview before upload:
+        </label>
+        <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">{code_from_temp_file}
+        </p>
+        <input type="submit" value="OK" onclick="Approve()" />
+        <input type="submit" value="Cancel" onclick="Cancel()" />
+    <body>
+</html>

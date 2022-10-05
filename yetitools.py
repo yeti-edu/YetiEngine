@@ -352,6 +352,8 @@ def start_editor(port=80):
                 handle_code_update(client, request)
                 print("hadled code update!")
                 break
+            elif url == "upload_file":
+                handle_upload_file(client, request)
             else:
                 handle_not_found(client, url)
 
@@ -364,13 +366,22 @@ def upload_new_main(path, code):
     with open(path, "wb") as f:
         f.write(code)
 
+def handle_upload_file(client, request):
+    pass
+
 def handle_code_root(client):
-    with open(MAIN_PATH, "rb") as f:
-        code = f.read().decode()
-        print(code)
-    with open(OUTPUT_PATH, "rb") as f:
-        output = f.read().decode()
-        print(output)
+    try:
+        with open(MAIN_PATH, "rb") as f:
+            code = f.read().decode()
+            print(code)
+    except:
+        code = ""
+    try:
+        with open(OUTPUT_PATH, "rb") as f:
+            output = f.read().decode()
+            print(output)
+    except:
+        output = ""
     send_header(client)
     client.sendall("""
     <html>
@@ -424,6 +435,10 @@ def handle_code_root(client):
                 </form>
                 <form action="run" method="POST">
                     <input type="submit" value="Run Current Code">
+                </form>
+                <form action="upload_file" method="POST">
+                    <label for="file">Select a file:</label>
+                    <input type="file" id="file" name="file">
                 </form>
             <body>
         </html>

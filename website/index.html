@@ -1,0 +1,92 @@
+<html>
+    <head>
+        <script>
+        async function uploadCode() {
+            let url = './upload';
+            let code = document.getElementById("code").value;
+            let data = {'code': code}
+            let res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            console.log(data);
+
+            if (res.ok) {
+
+                // let text = await res.text();
+                // return text;
+
+                let ret = await res.json();
+                return JSON.parse(ret.data);
+
+            } else {
+                return `HTTP error: ${res.status}`;
+            }
+        }
+
+        function loadFile() {
+            let codefile = document.getElementById("file").files[0];
+            formData = new FormData()
+            formData.append("file", codefile);
+            fetch('/upload_file', {method: "POST", body: formData});
+        }
+        </script>
+        <style type="text/css">
+        .input,
+            .textarea {
+            border: 1px solid #ccc;
+            font-family: courier;
+            white-space: pre-wrap;
+            color:#F0A020;
+            background-color:#1F274A;
+            font-size: inherit;
+            padding: 1px 6px;
+            }
+            .textarea {
+            display: block;
+            width: 100%;
+            overflow: hidden;
+            resize: both;
+            min-height: 40px;
+            line-height: 20px;
+            }
+            .textarea[contenteditable]:empty::before {
+            content: "Your code here";
+            color: gray;
+            }
+        </style>
+    </head>
+    <body style="background-color:#0F173A;">
+        <h1 style="color: #0F173A; font-family:courier; text-align: center;">
+            <span style="color: #37BEAF;">
+                Yeti Code Editor
+            </span>
+        </h1>
+        <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">""" + code.replace("\n", "<br>") +
+        """</p>
+        <label for="code"style="color:white;font-family:courier;">
+        Last run output:
+        </label>
+        <p style="color:#FFFFFF; background-color:#000000; text-align: left; vertical-align: top; font-family:courier;">""" + output.replace("\n", "<br>") +
+        """</p>
+        <label for="code"style="color:white;font-family:courier;">
+        Enter your code:
+        </label>
+        <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;"></p>
+        <textarea class="textarea" placeholder="Your Code Here" name="code" id="code" rows="15" style="overflow-y: visible;"></textarea>
+        <br/>
+        <input type="submit" value="Upload Code" onclick="uploadCode()" />
+
+        <input type="submit" value="Run Current Code" onclick="runCode()">
+        <br/>
+        <br/>
+        <label for="file" style="color:#FFFFFF">Select a file:</label>
+        <input type="file" id="file" name="file">
+        <br/>
+        <input type="submit" value="Load file" onclick="loadFile()" />
+        <input type="submit" value="View file before upload" onclick="location.href=preview.html" />
+    <body>
+</html>
