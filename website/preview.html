@@ -2,19 +2,31 @@
     <head>
         <script>
         async function Approve() {
+            let file_name = document.getElementById("file_name").value;
             let url = './aprove';
+            let data = {'aproval': "OK",
+                        'file_name': file_name};
             let res = await fetch(url, {
-                method: 'GET',
-                headers: {},
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
             });
+            console.log(data);
         }
 
         async function Cancel() {
-            let url = './cancel';
+            let url = './aprove';
+            let data = {'aproval': "CANCEL"};
             let res = await fetch(url, {
-                method: 'GET',
-                headers: {},
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
             });
+            console.log(data);
         }
         </script>
         <style type="text/css">
@@ -53,6 +65,9 @@
         </label>
         <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">{code_from_temp_file}
         </p>
+        <br/>
+        <input id="file_name" type="text" placeholder="Enter file name"/>
+        <br/>
         <input type="submit" value="OK" onclick="Approve()" />
         <input type="submit" value="Cancel" onclick="Cancel()" />
     <body>

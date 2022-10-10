@@ -1,10 +1,11 @@
 <html>
-    <head>
-        <script>
+
+<head>
+    <script>
         async function uploadCode() {
             let url = './upload';
             let code = document.getElementById("code").value;
-            let data = {'code': code};
+            let data = { 'code': code };
             let res = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -15,65 +16,124 @@
             console.log(data);
         }
 
-        async function uploadFile() {
-            let url = './upload_file';
-            let codefile = document.getElementById("file").files[0];
-            formData = new FormData();
-            formData.append("file", codefile);
-            fetch(url, {method: "POST", body: formData});
+        function handleSendFile() {
+            const ws = new WebSocket("ws://{host_ip}/upload_a_file");
+            ws.binaryType = "arraybuffer";
+            console.log("defining web socket...")
+            
+            ws.onopen = function () {
+                console.log("Connected.");
+                getFilePayload().then(payload => {
+                    ws.send(payload);
+                    ws.send('---EOF---');
+                    alert("the File has been transferred.")
+                    ws.close();
+                }).catch(error => {console.error(error)})
+            };
+
+            ws.onmessage = function (evt) {
+                console.log("got message" + evt.msg);
+            };
+
+            ws.onerror = function (e) {
+                console.error(e.msg);
+            };
+
+            ws.onclose = function() {
+                console.log("websocket closed.");
+            }
+
         }
-        </script>
-        <style type="text/css">
+
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                var fr = new FileReader();
+                fr.onload = () => {
+                    console.log("File loaded");
+                    resolve(fr.result)
+                };
+                fr.onerror = reject;
+                fr.readAsArrayBuffer(file);
+            });
+        }
+
+        async function getFilePayload() {
+            let file = document.getElementById('file').files[0];
+            console.log(file)
+            console.log("start reading file...")
+
+            const file_payload = await readFile(file)
+            return file_payload
+        }
+        
+        function runCode() {
+            let url = './run';
+            data = "run"
+            fetch(url, { method: "POST", body: data });
+        }
+
+    </script>
+    <style type="text/css">
         .input,
-            .textarea {
+        .textarea {
             border: 1px solid #ccc;
             font-family: courier;
             white-space: pre-wrap;
-            color:#F0A020;
-            background-color:#1F274A;
+            color: #F0A020;
+            background-color: #1F274A;
             font-size: inherit;
             padding: 1px 6px;
-            }
-            .textarea {
+        }
+
+        .textarea {
             display: block;
             width: 100%;
             overflow: hidden;
             resize: both;
             min-height: 40px;
             line-height: 20px;
-            }
-            .textarea[contenteditable]:empty::before {
+        }
+
+        .textarea[contenteditable]:empty::before {
             content: "Your code here";
             color: gray;
-            }
-        </style>
-    </head>
-    <body style="background-color:#0F173A;">
-        <h1 style="color: #0F173A; font-family:courier; text-align: center;">
-            <span style="color: #37BEAF;">
-                Yeti Code Editor
-            </span>
-        </h1>
-        <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">{code}</p>
-        <label for="code"style="color:white;font-family:courier;">
-        Last run output:
-        </label>
-        <p style="color:#FFFFFF; background-color:#000000; text-align: left; vertical-align: top; font-family:courier;">{output}</p>
-        <label for="code"style="color:white;font-family:courier;">
-        Enter your code:
-        </label>
-        <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;"></p>
-        <textarea class="textarea" placeholder="Your Code Here" name="code" id="code" rows="15" style="overflow-y: visible;"></textarea>
-        <br/>
-        <input type="submit" value="Upload Code" onclick="uploadCode()" />
+        }
+    </style>
+</head>
 
-        <input type="submit" value="Run Current Code" onclick="runCode()" />
-        <br/>
-        <br/>
-        <label for="file" style="color:#FFFFFF">Select a file:</label>
-        <input type="file" id="file" name="file">
-        <br/>
-        <input type="submit" value="Upload file" onclick="uploadFile()" />
-        <input type="submit" value="View file before upload" onclick="location.href=preview.html" />
+<body style="background-color:#0F173A;">
+    <h1 style="color: #0F173A; font-family:courier; text-align: center;">
+        <span style="color: #37BEAF;">
+            Yeti Code Editor
+        </span>
+    </h1>
+    <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">
+        {code}</p>
+    <label for="code" style="color:white;font-family:courier;">
+        Last run output:
+    </label>
+    <p style="color:#FFFFFF; background-color:#000000; text-align: left; vertical-align: top; font-family:courier;">
+        {output}</p>
+    <label for="code" style="color:white;font-family:courier;">
+        Enter your code:
+    </label>
+    <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;"></p>
+    <textarea class="textarea" placeholder="Your Code Here" name="code" id="code" rows="15"
+        style="overflow-y: visible;"></textarea>
+    <br />
+    <input type="submit" value="Upload Code" onclick="uploadCode()" />
+
+    <input type="submit" value="Run Current Code" onclick="runCode()" />
+    <br />
+    <br />
+    <label for="file" style="color:#FFFFFF">Select a file:</label>
+    <br />
+    <input type="file" id="file" name="file">
+    <br />
+    <input type="submit" value="Upload file" onclick="handleSendFile()" />
+    </form>
+    <input type="button" onclick="window.location.href = '/preview';" value="Preview before upload" />
+
     <body>
+
 </html>
