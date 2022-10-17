@@ -2,6 +2,11 @@ from microdot import Microdot, Response
 import microdot_websocket
 from random import randint
 
+NETWORK_PROFILES = 'wifi.dat'
+MAIN_PATH = "/main.py"
+TEMP_UPLOAD_PATH = "/temp_code/temp_main.py"
+OUTPUT_PATH = "/output.txt"
+CODE_PATH = "/code/main_{name}.py"
 
 # setup webserver
 app = Microdot()
