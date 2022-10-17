@@ -1,12 +1,12 @@
 <html>
     <head>
         <script>
-        async function Approve() {
-            let file_name = document.getElementById("file_name").value;
-            let url = './aprove';
-            let data = {'aproval': "OK",
+        async function approve() {
+            const file_name = document.getElementById("file_name").value;
+            const url = './approve';
+            const data = {'approval': "OK",
                         'file_name': file_name};
-            let res = await fetch(url, {
+            await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -14,12 +14,13 @@
                 body: JSON.stringify(data),
             });
             console.log(data);
+            window.location.replace(window.location.origin)
         }
 
-        async function Cancel() {
-            let url = './aprove';
-            let data = {'aproval': "CANCEL"};
-            let res = await fetch(url, {
+        async function cancel() {
+            const url = './approve';
+            const data = {'approval': "CANCEL"};
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -27,6 +28,7 @@
                 body: JSON.stringify(data),
             });
             console.log(data);
+            window.location.replace(window.location.origin)
         }
         </script>
         <style type="text/css">
@@ -68,7 +70,7 @@
         <br/>
         <input id="file_name" type="text" placeholder="Enter file name"/>
         <br/>
-        <input type="submit" value="OK" onclick="Approve()" />
-        <input type="submit" value="Cancel" onclick="Cancel()" />
+        <input type="submit" value="OK" onclick="approve()" />
+        <input type="submit" value="Cancel" onclick="cancel()" />
     <body>
 </html>

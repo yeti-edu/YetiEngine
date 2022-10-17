@@ -37,6 +37,7 @@
 
             ws.onerror = function (e) {
                 console.error(e.msg);
+                ws.close()
             };
 
             ws.onclose = function() {

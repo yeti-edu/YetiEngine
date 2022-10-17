@@ -170,6 +170,7 @@ def with_websocket(f):
         try:
             f(request, ws, *args, **kwargs)
             ws.close()  # pragma: no cover
+            print("closing websocket on server...")
         except OSError as exc:
             if exc.errno not in [32, 54, 104]:  # pragma: no cover
                 raise
