@@ -1,23 +1,31 @@
 from microdot import Microdot, Response
 import microdot_websocket
 from random import randint
+import json
 
 NETWORK_PROFILES = 'wifi.dat'
 MAIN_PATH = "/main.py"
 TEMP_UPLOAD_PATH = "/temp_code/temp_main.py"
 OUTPUT_PATH = "/output.txt"
-CODE_PATH = "/code/main_{name}.py"
+CODE_PATH = "/code/main{num}.py"
+
+global host_ip
+host_ip = ""
+
 
 # setup webserver
 app = Microdot()
 
 
-def start_server():
+def start_server(server_ip):
+    global host_ip
     print('Starting microdot app')
+    host_ip = server_ip
     app.run(port=80)
     print('Server started')
 
 def run_code():
+    print("running all code files...")
     import main
 
 def update_code(request_json):
@@ -55,12 +63,6 @@ def run_main_code(request):
     run_code()
     return root(request)
 
-@app.route('/upload', methods=["POST"])
-def upload(request):
-    print(request.__dict__)
-    update_code(request.json)
-    return Response(status_code=200)
-
 @app.route('/preview', methods=["GET"])
 def preview(request):
     try:
@@ -77,11 +79,25 @@ def aprove_code(request):
     ans = request.json
     aproval = ans["approval"]
     if aproval == "OK":
-        print("got OK with filename: " + ans["file_name"])
+        print("got OK with file to main number:")
+        with open("/code/code.json", "r") as f:
+            info = json.loads(f.read())
+        print(info["next_file"])
         with open(TEMP_UPLOAD_PATH, "rb") as f:
             code = f.read()
-        with open(CODE_PATH.format(name=ans["file_name"]), "wb") as f:
+            print("Loaded file to transfer...")
+        with open(CODE_PATH.format(num=info["next_file"]), "wb") as f:
             f.write(code)
+            print("Flushed file to main #"+info["next_file"]+" to "+CODE_PATH.format(num=info["next_file"]))
+        nextfilenum = int(info["next_file"])
+        if nextfilenum == 10:
+            info["next_file"] = '0'
+        else:
+            info["next_file"] = str(nextfilenum + 1)
+        print("next main number is "+info["next_file"])
+        with open("code/code.json", "w") as f:
+            f.write(json.dumps(info))
+        print("next main number updated.")
     if aproval == "CANCEL":
         with open(TEMP_UPLOAD_PATH, "wb") as f:
             print("got CANCEL")
@@ -92,6 +108,7 @@ def aprove_code(request):
 @app.route('/upload_a_file')
 @microdot_websocket.with_websocket
 def receive_file(request, ws):
+    print("got upload a file request")
     payload = bytes()
     recv_loop = True
     while recv_loop:

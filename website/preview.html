@@ -2,10 +2,8 @@
     <head>
         <script>
         async function approve() {
-            const file_name = document.getElementById("file_name").value;
             const url = './approve';
-            const data = {'approval': "OK",
-                        'file_name': file_name};
+            const data = {'approval': "OK"};
             await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -67,9 +65,6 @@
         </label>
         <p style="color:#F0A020; background-color:#1F274A; text-align: left; vertical-align: top; font-family:courier;">{code_from_temp_file}
         </p>
-        <br/>
-        <input id="file_name" type="text" placeholder="Enter file name"/>
-        <br/>
         <input type="submit" value="OK" onclick="approve()" />
         <input type="submit" value="Cancel" onclick="cancel()" />
     <body>

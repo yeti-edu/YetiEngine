@@ -200,19 +200,20 @@ def handle_configure(client, request):
         return False
 
     if do_connect(ssid, password):
+        global host_ip
         response = """\
             <html>
                 <center>
                     <br><br>
                     <h1 style="color: #0F173A; text-align: center;">
                         <span style="color: #37BEAF;">
-                            ESP successfully connected to WiFi network %(ssid)s.
+                            ESP successfully connected to WiFi network %(ssid)s on %(host_ip)s.
                         </span>
                     </h1>
                     <br><br>
                 </center>
             </html>
-        """ % dict(ssid=ssid)
+        """ % dict(ssid=ssid,host_ip=host_ip)
         send_response(client, response)
         try:
             profiles = read_profiles()
@@ -222,6 +223,7 @@ def handle_configure(client, request):
         write_profiles(profiles)
 
         time.sleep(5)
+        wlan_ap.disconnect()
 
         return True
     else:

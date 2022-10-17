@@ -66,12 +66,6 @@
             const file_payload = await readFile(file)
             return file_payload
         }
-        
-        function runCode() {
-            let url = './run';
-            data = "run"
-            fetch(url, { method: "POST", body: data });
-        }
 
     </script>
     <style type="text/css">
@@ -115,16 +109,7 @@
     </label>
     <p style="color:#FFFFFF; background-color:#000000; text-align: left; vertical-align: top; font-family:courier;">
         {output}</p>
-    <label for="code" style="color:white;font-family:courier;">
-        Enter your code:
-    </label>
-    <p style="background-color:#FFFFFF; text-align: left; vertical-align: top; font-family:courier;"></p>
-    <textarea class="textarea" placeholder="Your Code Here" name="code" id="code" rows="15"
-        style="overflow-y: visible;"></textarea>
-    <br />
-    <input type="submit" value="Upload Code" onclick="uploadCode()" />
-
-    <input type="submit" value="Run Current Code" onclick="runCode()" />
+    <input type="button" onclick="window.location.href = '/run';" value="Run Current Code" />
     <br />
     <br />
     <label for="file" style="color:#FFFFFF">Select a file:</label>

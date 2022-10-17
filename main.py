@@ -1,11 +1,10 @@
+print("running main")
 from time import sleep
 from yetitools import OUTPUT_PATH
 import os
 import io
 import gc
-from sys import modules, path
-
-path.append("./code")
+from sys import modules
 
 # reload module function
 def reload(mod):
@@ -27,15 +26,17 @@ class DUP(io.IOBase):
     def readinto(self, data):
         return 0
 
-# call folder code runner
-def run_files():
-    import runner
-
-# 
+s = bytearray()
+os.dupterm(DUP(s))
+import runner
 while True:
+    print("entering main loop")
     s = bytearray()
     os.dupterm(DUP(s))
-    run_files()
+    # call folder code runner
+    print("importing runner")
+    reload(runner)
+    print("finished importing")
     if s:
         with open(OUTPUT_PATH, "wb") as file:
             file.write(s)
