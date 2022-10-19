@@ -1,6 +1,5 @@
 from microdot import Microdot, Response
 import microdot_websocket
-from random import randint
 import json
 
 NETWORK_PROFILES = 'wifi.dat'
@@ -8,6 +7,7 @@ MAIN_PATH = "/main.py"
 TEMP_UPLOAD_PATH = "/temp_code/temp_main.py"
 OUTPUT_PATH = "/output.txt"
 CODE_PATH = "/code/main{num}.py"
+CODE_CONFIG_PATH = "/code/code.json"
 
 global host_ip
 host_ip = ""
@@ -50,7 +50,9 @@ def page(html_file_name: str):
 def index_page(html_file_name: str):
     with open(OUTPUT_PATH, "r") as f:
         output = f.read().replace("\n", "<br>")
-    with open(MAIN_PATH, "r") as f:
+    with open(CODE_PATH, "r") as f:
+        main_number = str(int(json.loads(f.read())["next_file"]) - 1)
+    with open(CODE_PATH.format(num=main_number), "r") as f:
         code = f.read().replace("\n", "<br>")
     return page(html_file_name).replace("{code}", code).replace("{output}", output).replace("{host_ip}", host_ip)
 
@@ -80,7 +82,7 @@ def aprove_code(request):
     aproval = ans["approval"]
     if aproval == "OK":
         print("got OK with file to main number:")
-        with open("/code/code.json", "r") as f:
+        with open(CODE_CONFIG_PATH, "r") as f:
             info = json.loads(f.read())
         print(info["next_file"])
         with open(TEMP_UPLOAD_PATH, "rb") as f:
@@ -95,7 +97,7 @@ def aprove_code(request):
         else:
             info["next_file"] = str(nextfilenum + 1)
         print("next main number is "+info["next_file"])
-        with open("code/code.json", "w") as f:
+        with open(CODE_CONFIG_PATH, "w") as f:
             f.write(json.dumps(info))
         print("next main number updated.")
     if aproval == "CANCEL":

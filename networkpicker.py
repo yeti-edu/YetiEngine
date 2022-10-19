@@ -224,6 +224,7 @@ def handle_configure(client, request):
 
         time.sleep(5)
         wlan_ap.disconnect()
+        stop()
 
         return True
     else:
@@ -270,7 +271,6 @@ def start_network_picker(port=80):
     wlan_ap.active(True)
 
     wlan_ap.config(essid=ap_ssid, password=ap_password, authmode=ap_authmode)
-
     server_socket = socket.socket()
     server_socket.bind(addr)
     server_socket.listen(1)
@@ -282,7 +282,8 @@ def start_network_picker(port=80):
     while True:
         if wlan_sta.isconnected():
             return True
-
+        if not server_socket:
+            break
         client, addr = server_socket.accept()
         print('client connected from', addr)
         try:
